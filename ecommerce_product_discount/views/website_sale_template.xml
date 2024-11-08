@@ -1,0 +1,150 @@
+<odoo>
+    <template id="website_sale.product_price">
+        <div itemprop="offers" itemscope="itemscope" itemtype="http://schema.org/Offer" class="product_price mt16">
+            <h4 class="oe_price_h4 css_editable_mode_hidden">
+                <t t-if="product.discount_percentage > 0">
+                    <span class="oe_currency_value" itemprop="price">
+                        <span class="text-danger" style="text-decoration: line-through;">
+                            <span t-field="product.list_price" t-options="{'widget': 'monetary', 'display_currency': website.currency_id}"/> <!-- Original price -->
+                        </span>
+                        <span class="text-success" style="font-weight: bold;">
+                            <span t-field="product.discounted_price" t-options="{'widget': 'monetary', 'display_currency': website.currency_id}"/> <!-- Discounted price -->
+                        </span>
+                    </span>
+                </t>
+                <t t-else="">
+                    <span class="oe_currency_value" itemprop="price">
+                        <span t-field="product.list_price" t-options="{'widget': 'monetary', 'display_currency': website.currency_id}"/> <!-- Only original price -->
+                    </span>
+                </t>
+                <span itemprop="priceCurrency" style="display:none;" t-esc="website.currency_id.name"/>
+            </h4>
+            <h4 class="css_non_editable_mode_hidden decimal_precision"
+                t-att-data-precision="str(website.currency_id.decimal_places)">
+                <t t-if="product.discount_percentage > 0">
+                    <span class="oe_currency_value" itemprop="price">
+                        <span class="text-danger" style="text-decoration: line-through;">
+                            <span t-field="product.list_price" t-options="{'widget': 'monetary', 'display_currency': website.currency_id}"/> <!-- Original price -->
+                        </span>
+                        <span class="text-success" style="font-weight: bold;">
+                            <span t-field="product.discounted_price" t-options="{'widget': 'monetary', 'display_currency': website.currency_id}"/> <!-- Discounted price -->
+                        </span>
+                    </span>
+                </t>
+                <t t-else="">
+                    <span class="oe_currency_value" itemprop="price">
+                        <span t-field="product.list_price" t-options="{'widget': 'monetary', 'display_currency': website.currency_id}"/> <!-- Only original price -->
+                    </span>
+                </t>
+            </h4>
+        </div>
+    </template>
+
+    <template id="website_sale.products_item" name="Products item">
+        <t t-set="product_href"
+           t-value="keep(product.website_url, page=(pager['page']['num'] if pager['page']['num']&gt;1 else None))"/>
+
+        <t t-set="combination_info"
+           t-value="product._get_combination_info(only_template=True, add_qty=add_qty or 1, pricelist=pricelist)"/>
+
+        <form action="/shop/cart/update" method="post" class="card oe_product_cart"
+              t-att-data-publish="product.website_published and 'on' or 'off'"
+              itemscope="itemscope" itemtype="http://schema.org/Product">
+            <div class="card-body p-1 oe_product_image">
+                <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                <a t-att-href="product_href" class="d-block h-100" itemprop="url">
+                    <t t-set="image_holder" t-value="product._get_image_holder()"/>
+                    <span t-field="image_holder.image_1920"
+                          t-options="{'widget': 'image', 'preview_image': 'image_1024' if product_image_big else 'image_256', 'itemprop': 'image'}"
+                          class="d-flex h-100 justify-content-center align-items-center"/>
+                </a>
+            </div>
+            <div class="card-body p-0 text-center o_wsale_product_information">
+                <div class="p-2 o_wsale_product_information_text">
+                    <h6 class="o_wsale_products_item_title">
+                        <a itemprop="name" t-att-href="product_href" t-att-content="product.name"
+                           t-field="product.name"/>
+                        <a role="button" t-if="not product.website_published" t-att-href="product_href"
+                           class="btn btn-sm btn-danger" title="This product is unpublished.">Unpublished
+                        </a>
+                    </h6>
+                    <div class="product_price" itemprop="offers" itemscope="itemscope"
+                         itemtype="http://schema.org/Offer">
+                        <t t-if="product.discount_percentage > 0">
+                            <span class="oe_currency_value" itemprop="price">
+                                <span class="text-danger" style="text-decoration: line-through;">
+                                    <span t-field="product.list_price" t-options="{'widget': 'monetary', 'display_currency': website.currency_id}"/> <!-- Original price -->
+                                </span>
+                                <span class="text-success" style="font-weight: bold;">
+                                    <span t-field="product.discounted_price" t-options="{'widget': 'monetary', 'display_currency': website.currency_id}"/>
+                                </span>
+                            </span>
+                        </t>
+                        <t t-else="">
+                            <span class="oe_currency_value" itemprop="price">
+                                <span t-field="product.list_price" t-options="{'widget': 'monetary', 'display_currency': website.currency_id}"/>
+                            </span>
+                        </t>
+                        <span itemprop="priceCurrency" style="display:none;" t-esc="website.currency_id.name"/>
+                    </div>
+                </div>
+                <div class="o_wsale_product_btn"/>
+            </div>
+            <t t-set="bg_color" t-value="td_product['ribbon']['bg_color'] or ''"/>
+            <t t-set="text_color" t-value="td_product['ribbon']['text_color']"/>
+            <t t-set="bg_class" t-value="td_product['ribbon']['html_class']"/>
+            <span t-attf-class="o_ribbon #{bg_class}"
+                  t-attf-style="#{text_color and ('color: %s; ' % text_color)}#{bg_color and 'background-color:' + bg_color}"
+                  t-raw="td_product['ribbon']['html'] or ''"/>
+        </form>
+    </template>
+
+    <template id="website_sale.suggested_products_list" inherit_id="website_sale.cart_lines" customize_show="True" name="Accessory Products in my cart">
+        <xpath expr="//table[@id='cart_products']" position="after">
+            <h5 class='text-muted js_cart_lines' t-if="suggested_products">Suggested Accessories:</h5>
+            <table t-if="suggested_products" id="suggested_products" class="js_cart_lines table table-striped table-sm">
+                <tbody>
+                    <tr t-foreach="suggested_products" t-as="product">
+                        <t t-set="combination_info" t-value="product._get_combination_info_variant(pricelist=website_sale_order.pricelist_id)"/>
+                        <td class='td-img text-center'>
+                            <a t-att-href="product.website_url">
+                                <span t-field="product.image_128" t-options="{'widget': 'image', 'qweb_img_responsive': False, 'class': 'rounded o_image_64_max'}" />
+                            </a>
+                        </td>
+                        <td class='td-product_name'>
+                            <div>
+                                <a t-att-href="product.website_url">
+                                    <strong t-esc="combination_info['display_name']" />
+                                </a>
+                            </div>
+                            <div class="text-muted d-none d-md-block" t-field="product.description_sale" />
+                        </td>
+                        <td class='td-price'>
+                            <t t-if="product.discount_percentage > 0">
+                            <span class="oe_currency_value" itemprop="price">
+                                <span class="text-danger" style="text-decoration: line-through;">
+                                    <span t-field="product.list_price" t-options="{'widget': 'monetary', 'display_currency': website.currency_id}"/> <!-- Original price -->
+                                </span>
+                                <span class="text-success" style="font-weight: bold;">
+                                    <span t-field="product.discounted_price" t-options="{'widget': 'monetary', 'display_currency': website.currency_id}"/>
+                                </span>
+                            </span>
+                        </t>
+                        <t t-else="">
+                            <span class="oe_currency_value" itemprop="price">
+                                <span t-field="product.list_price" t-options="{'widget': 'monetary', 'display_currency': website.currency_id}"/>
+                            </span>
+                        </t>
+                        </td>
+                        <td class="w-25 text-center">
+                            <input class="js_quantity" name="product_id" t-att-data-product-id="product.id" type="hidden" />
+                            <a role="button" class="btn btn-link js_add_suggested_products">
+                                <strong>Add to Cart</strong>
+                            </a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </xpath>
+    </template>
+</odoo>
