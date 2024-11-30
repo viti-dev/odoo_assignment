@@ -3,6 +3,7 @@ from odoo.exceptions import AccessError, ValidationError, UserError
 import requests
 import logging
 
+
 _logger = logging.getLogger(__name__)
 
 class ProductTemplate(models.Model):
